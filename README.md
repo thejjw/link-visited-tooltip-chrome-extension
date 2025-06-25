@@ -30,8 +30,6 @@ See [LICENSE](LICENSE).
 This extension is a minimal, Chrome-focused rewrite inspired by [Link Status Redux](https://github.com/jaatroko/link-status-redux) by Juha Aatrokoski.  
 Original project: [Link Status Redux on GitHub](https://github.com/jaatroko/link-status-redux)
 
-Icon(s) from Google Fonts, licensed under the Apache License 2.0.
-
 ---
 
 ## Author

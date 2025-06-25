@@ -60,11 +60,14 @@ document.addEventListener("mouseover", function(e) {
                 } else if (result.elapsed < 3600) {
                     let minutes = Math.floor(result.elapsed / 60);
                     ago = `${minutes} min${minutes !== 1 ? "s" : ""}`;
-                } else {
+                } else if (result.elapsed < 86400) { // less than a day
                     let hours = Math.floor(result.elapsed / 3600);
                     let minutes = Math.floor((result.elapsed % 3600) / 60);
                     ago = `${hours} hour${hours !== 1 ? "s" : ""}`;
                     if (minutes > 0) ago += `, ${minutes} min${minutes !== 1 ? "s" : ""}`;
+                } else {
+                    let days = Math.floor(result.elapsed / 86400);
+                    ago = `${days} day${days !== 1 ? "s" : ""}`;
                 }
                 show_tooltip(`Visited ${ago} ago`, e.clientX, e.clientY);
             } else {

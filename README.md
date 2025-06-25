@@ -8,6 +8,7 @@ A minimal Chrome extension that shows a tooltip when you hover over a link, indi
 - **Visit time:** The tooltip displays how long ago you last visited the link (e.g., "Visited 2 hours, 5 mins ago").
 - **Privacy-friendly:** No data is sent anywhere; all history checks are local.
 - **Chrome-only:** Designed for Google Chrome (Manifest V3).
+- **Enable/disable:** Click the extension icon to temporarily disable or enable the tooltip feature. When disabled, the icon shows an 'OFF' badge and no tooltips will appear.
 
 ## Installation
 

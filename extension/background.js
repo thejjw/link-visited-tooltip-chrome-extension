@@ -29,7 +29,8 @@ chrome.action.onClicked.addListener(() => {
         chrome.tabs.query({}, (tabs) => {
             for (let tab of tabs) {
                 if (tab.id) {
-                    chrome.tabs.sendMessage(tab.id, { type: 'lvt:set_disabled', disabled });
+                    chrome.tabs.sendMessage(tab.id, { type: 'lvt:set_disabled', disabled })
+                        .catch(() => {}); // Silently ignore if no receiver
                 }
             }
         });

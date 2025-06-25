@@ -8,8 +8,23 @@ if (typeof browser === "undefined") {
 
 let anchor = null;
 let tooltip_div = null;
+let lvt_disabled = false;
+
+// Listen for enable/disable messages
+browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (msg.type === 'lvt:set_disabled') {
+        lvt_disabled = !!msg.disabled;
+        if (lvt_disabled) hide_tooltip();
+    }
+});
+
+// On load, get disabled state
+browser.storage && browser.storage.local.get('lvt_disabled', (data) => {
+    lvt_disabled = !!data.lvt_disabled;
+});
 
 function show_tooltip(text, x, y) {
+    if (lvt_disabled) return;
     if (!tooltip_div) {
         tooltip_div = document.createElement("div");
         tooltip_div.style.position = "fixed";
@@ -37,6 +52,7 @@ function hide_tooltip() {
 }
 
 document.addEventListener("mouseover", function(e) {
+    if (lvt_disabled) return;
     let a;
     for (a = e.target; a !== null; a = a.parentElement) {
         if (a.tagName === "A" || a.tagName === "AREA") {

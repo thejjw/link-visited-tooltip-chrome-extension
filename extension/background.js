@@ -2,6 +2,42 @@
 // Copyright (c) 2025 @thejjw
 
 // Minimal background script for Chrome tooltip extension
+
+// Helper: update badge
+function updateBadge(disabled) {
+    if (disabled) {
+        chrome.action.setBadgeText({ text: 'OFF' });
+        chrome.action.setBadgeBackgroundColor({ color: '#d00' });
+    } else {
+        chrome.action.setBadgeText({ text: '' });
+    }
+}
+
+// On install, set enabled by default
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.storage.local.set({ lvt_disabled: false });
+    updateBadge(false);
+});
+
+// Toggle enabled/disabled on icon click
+chrome.action.onClicked.addListener(() => {
+    chrome.storage.local.get('lvt_disabled', (data) => {
+        const disabled = !data.lvt_disabled;
+        chrome.storage.local.set({ lvt_disabled: disabled });
+        updateBadge(disabled);
+        // Notify all tabs
+        chrome.tabs.query({}, (tabs) => {
+            for (let tab of tabs) {
+                if (tab.id) {
+                    chrome.tabs.sendMessage(tab.id, { type: 'lvt:set_disabled', disabled })
+                        .catch(() => {}); // Silently ignore if no receiver
+                }
+            }
+        });
+    });
+});
+
+// Respond to content script queries
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     if (msg.type === "lsr:check_visited") {
         chrome.history.getVisits({ url: msg.url }, function(results) {
@@ -17,4 +53,11 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         });
         return true; // async
     }
+});
+
+// On startup, set badge state
+chrome.runtime.onStartup.addListener(() => {
+    chrome.storage.local.get('lvt_disabled', (data) => {
+        updateBadge(!!data.lvt_disabled);
+    });
 });

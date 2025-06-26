@@ -34,4 +34,4 @@ Original project: [Link Status Redux on GitHub](https://github.com/jaatroko/link
 ---
 
 ## Author
-- Jaewoo Jeon [thejjw](https://github.com/thejjw)
+- Jaewoo Jeon [@thejjw](https://github.com/thejjw)

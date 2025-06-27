@@ -17,6 +17,9 @@ A minimal Chrome extension that shows a tooltip when you hover over a link, indi
 3. Enable "Developer mode" (top right).
 4. Click "Load unpacked" and select the `extension` folder.
 
+**Alternatively, install from the [Chrome Web Store](https://chromewebstore.google.com/detail/link-visited-tooltip/eknakfmjakcfjkemkanekcakbnjfkbnc)**  
+_(Note: The Chrome Web Store version may not always have the latest updates.)_
+
 ## Usage
 
 - Hover your mouse over any link on a webpage.

@@ -40,17 +40,42 @@ chrome.action.onClicked.addListener(() => {
 // Respond to content script queries
 chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
     if (msg.type === "lsr:check_visited") {
-        chrome.history.getVisits({ url: msg.url }, function(results) {
-            if (chrome.runtime.lastError || !results || results.length === 0) {
-                sendResponse({ visited: false });
-                return;
-            }
-            // Find most recent visit
-            let lastVisit = results[0].visitTime;
-            for (let v of results) if (v.visitTime > lastVisit) lastVisit = v.visitTime;
-            let elapsed = (Date.now() - lastVisit) / 1000;
-            sendResponse({ visited: true, elapsed });
+        // Check both history and bookmarks
+        Promise.all([
+            // Check history
+            new Promise((resolve) => {
+                chrome.history.getVisits({ url: msg.url }, function(results) {
+                    if (chrome.runtime.lastError || !results || results.length === 0) {
+                        resolve({ visited: false });
+                        return;
+                    }
+                    // Find most recent visit
+                    let lastVisit = results[0].visitTime;
+                    for (let v of results) if (v.visitTime > lastVisit) lastVisit = v.visitTime;
+                    let elapsed = (Date.now() - lastVisit) / 1000;
+                    resolve({ visited: true, elapsed });
+                });
+            }),
+            // Check bookmarks
+            new Promise((resolve) => {
+                chrome.bookmarks.search({ url: msg.url }, function(results) {
+                    if (chrome.runtime.lastError) {
+                        resolve({ bookmarked: false });
+                        return;
+                    }
+                    resolve({ bookmarked: results && results.length > 0 });
+                });
+            })
+        ]).then(([historyResult, bookmarkResult]) => {
+            sendResponse({
+                visited: historyResult.visited,
+                elapsed: historyResult.elapsed,
+                bookmarked: bookmarkResult.bookmarked
+            });
+        }).catch(() => {
+            sendResponse({ visited: false, bookmarked: false });
         });
+        
         return true; // async
     }
 });

@@ -4,9 +4,10 @@ A minimal Chrome extension that shows a tooltip when you hover over a link, indi
 
 ## Features
 
-- **Simple tooltip:** On hovering any link, a small black tooltip appears near the cursor if you have visited the link before.
+- **Simple tooltip:** On hovering any link, a small black tooltip appears near the cursor if you have visited the link before or if it's bookmarked.
 - **Visit time:** The tooltip displays how long ago you last visited the link (e.g., "Visited 2 hours, 5 mins ago").
-- **Privacy-friendly:** No data is sent anywhere; all history checks are local.
+- **Bookmark indicator:** Links that are saved in your bookmarks show a ★ symbol in the tooltip.
+- **Privacy-friendly:** No data is sent anywhere; all history and bookmark checks are local.
 - **Chrome-only:** Designed for Google Chrome (Manifest V3).
 - **Enable/disable:** Click the extension icon to temporarily disable or enable the tooltip feature. When disabled, the icon shows an 'OFF' badge and no tooltips will appear.
 
@@ -17,11 +18,17 @@ A minimal Chrome extension that shows a tooltip when you hover over a link, indi
 3. Enable "Developer mode" (top right).
 4. Click "Load unpacked" and select the `extension` folder.
 
+**Alternatively, install from the [Chrome Web Store](https://chromewebstore.google.com/detail/link-visited-tooltip/eknakfmjakcfjkemkanekcakbnjfkbnc)**  
+_(Note: The Chrome Web Store version may not always have the latest updates.)_
+
 ## Usage
 
 - Hover your mouse over any link on a webpage.
 - If you have visited the link before, a tooltip will appear showing when you last visited it.
-- If you have not visited the link, no tooltip is shown.
+- If the link is bookmarked, a ★ symbol will appear at the beginning of the tooltip.
+- For bookmarked links that haven't been visited, the tooltip shows "★ Bookmarked".
+- For links that are both bookmarked and visited, the tooltip shows "★ Visited X ago".
+- If you have not visited the link and it's not bookmarked, no tooltip is shown.
 
 ## License
 See [LICENSE](LICENSE).

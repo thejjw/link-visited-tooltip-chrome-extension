@@ -11,6 +11,7 @@
         "128": "icons/icon128.png"
     },
     "permissions": [
+        "bookmarks",
         "history",
         "storage",
         "tabs"

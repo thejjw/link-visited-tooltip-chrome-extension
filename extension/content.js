@@ -69,6 +69,14 @@ document.addEventListener("mouseover", function(e) {
     }
     browser.runtime.sendMessage({ type: "lsr:check_visited", url: a.href })
         .then(result => {
+            let tooltipText = "";
+            
+            // Add bookmark symbol if bookmarked
+            if (result && result.bookmarked) {
+                tooltipText += "★ ";
+            }
+            
+            // Add visit information if visited
             if (result && result.visited && typeof result.elapsed === "number") {
                 let ago = "";
                 if (result.elapsed < 60) {
@@ -85,7 +93,15 @@ document.addEventListener("mouseover", function(e) {
                     let days = Math.floor(result.elapsed / 86400);
                     ago = `${days} day${days !== 1 ? "s" : ""}`;
                 }
-                show_tooltip(`Visited ${ago} ago`, e.clientX, e.clientY);
+                tooltipText += `Visited ${ago} ago`;
+            } else if (result && result.bookmarked) {
+                // If bookmarked but not visited, just show "Bookmarked"
+                tooltipText += "Bookmarked";
+            }
+            
+            // Show tooltip if we have any information to display
+            if (tooltipText) {
+                show_tooltip(tooltipText, e.clientX, e.clientY);
             } else {
                 hide_tooltip();
             }

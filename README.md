@@ -9,7 +9,7 @@ A minimal Chrome extension that shows a tooltip when you hover over a link, indi
 - **Bookmark indicator:** Links that are saved in your bookmarks show a ★ symbol in the tooltip.
 - **Privacy-friendly:** No data is sent anywhere; all history and bookmark checks are local.
 - **Chrome-only:** Designed for Google Chrome (Manifest V3).
-- **Enable/disable:** Click the extension icon to temporarily disable or enable the tooltip feature. When disabled, the icon shows an 'OFF' badge and no tooltips will appear.
+- **Enable/disable:** Click the extension icon to disable or enable the tooltip feature. When disabled, the icon shows an 'OFF' badge. The change takes effect for any new pages you load. (no `tabs` permission) For tabs that are already open, you will need to reload them for the setting to apply.
 
 ## Installation
 

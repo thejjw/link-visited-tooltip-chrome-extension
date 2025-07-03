@@ -25,15 +25,6 @@ chrome.action.onClicked.addListener(() => {
         const disabled = !data.lvt_disabled;
         chrome.storage.local.set({ lvt_disabled: disabled });
         updateBadge(disabled);
-        // Notify all tabs
-        chrome.tabs.query({}, (tabs) => {
-            for (let tab of tabs) {
-                if (tab.id) {
-                    chrome.tabs.sendMessage(tab.id, { type: 'lvt:set_disabled', disabled })
-                        .catch(() => {}); // Silently ignore if no receiver
-                }
-            }
-        });
     });
 });
 

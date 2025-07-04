@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Visited Tooltip - Options</title>
+    <link rel="stylesheet" href="options.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Link Visited Tooltip Options</h1>
+            <p>Configure domain exclusions where the tooltip should not appear</p>
+        </header>
+
+        <main>
+            <section class="exclusions-section">
+                <h2>Domain Exclusions</h2>
+                <p class="help-text">
+                    Add domains where you don't want the tooltip to appear. Use specific domains like "apps.domain.com" 
+                    to exclude only that domain, or use "domain.com" to exclude all subdomains. When you visit an excluded 
+                    domain, the extension icon will show an orange "EXCL" badge to indicate the tooltip is disabled for that site.
+                </p>
+
+                <div class="add-domain">
+                    <label for="domain-input">Add domain:</label>
+                    <div class="input-group">
+                        <input type="text" id="domain-input" placeholder="example.com" />
+                        <button id="add-btn">Add</button>
+                    </div>
+                </div>
+
+                <div class="exclusions-list">
+                    <h3>Excluded Domains</h3>
+                    <div id="exclusions-container">
+                        <p id="no-exclusions" class="empty-state">No domains excluded</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="examples-section">
+                <h3>Pattern Examples</h3>
+                <ul class="examples">
+                    <li><code>example.com</code> - Excludes example.com and all subdomains (a.example.com, b.example.com, etc.)</li>
+                    <li><code>app.example.com</code> - Excludes app.example.com and its subdomains, but won't block example.com</li>
+                </ul>
+            </section>
+        </main>
+
+        <footer>
+            <div class="storage-status">
+                <span id="storage-type"></span>
+            </div>
+            <div class="status" id="status"></div>
+            <div class="copyright">© 2025 @thejjw • <span id="version"></span></div>
+        </footer>
+    </div>
+
+    <script src="options.js"></script>
+</body>
+</html>

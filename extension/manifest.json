@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Link Visited Tooltip",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "description": "Shows a tooltip on link hover indicating when a link was last visited.",
     "author": "@thejjw",
     "icons": {
@@ -13,7 +13,9 @@
     "permissions": [
         "bookmarks",
         "history",
-        "storage"
+        "storage",
+        "contextMenus",
+        "tabs"
     ],
     "host_permissions": [
         "<all_urls>"
@@ -29,6 +31,10 @@
             "128": "icons/icon128.png"
         },
         "default_title": "Click to disable/enable the tooltip"
+    },
+    "options_ui": {
+        "page": "options.html",
+        "open_in_tab": true
     },
     "content_scripts": [
         {

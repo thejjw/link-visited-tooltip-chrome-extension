@@ -9,22 +9,112 @@ if (typeof browser === "undefined") {
 let anchor = null;
 let tooltip_div = null;
 let lvt_disabled = false;
+let domain_excluded = false;
 
-// Listen for enable/disable messages
-browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    if (msg.type === 'lvt:set_disabled') {
-        lvt_disabled = !!msg.disabled;
+// Storage helper functions
+const storage = {
+    async get(key) {
+        try {
+            // Try sync storage first, fall back to local
+            const result = await browser.storage.sync.get(key);
+            return result[key];
+        } catch (error) {
+            console.warn('Sync storage not available, using local storage:', error);
+            const result = await browser.storage.local.get(key);
+            return result[key];
+        }
+    }
+};
+
+// Domain exclusion checking
+function isCurrentDomainExcluded(exclusions) {
+    if (!exclusions || !Array.isArray(exclusions)) {
+        return false;
+    }
+    
+    const currentHostname = window.location.hostname.toLowerCase();
+    
+    for (const exclusion of exclusions) {
+        const excludeDomain = exclusion.toLowerCase();
+        
+        // Exact match
+        if (currentHostname === excludeDomain) {
+            return true;
+        }
+        
+        // Subdomain match - check if current domain ends with "." + exclude domain
+        if (currentHostname.endsWith('.' + excludeDomain)) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+// Check if extension should run on current domain
+async function checkDomainExclusion() {
+    try {
+        const exclusions = await storage.get('domain_exclusions');
+        const wasExcluded = domain_excluded;
+        domain_excluded = isCurrentDomainExcluded(exclusions);
+        
+        // Notify background script if exclusion status changed
+        if (wasExcluded !== domain_excluded) {
+            browser.runtime.sendMessage({
+                type: 'lvt:domain_status_changed',
+                excluded: domain_excluded
+            }).catch(() => {
+                // Ignore errors if background script isn't available
+            });
+        }
+    } catch (error) {
+        console.warn('Failed to check domain exclusions:', error);
+        domain_excluded = false;
+    }
+}
+
+// Listen for storage changes instead of messages
+browser.storage.onChanged.addListener((changes, areaName) => {
+    if (changes.lvt_disabled && areaName === 'local') {
+        lvt_disabled = !!changes.lvt_disabled.newValue;
         if (lvt_disabled) hide_tooltip();
+    } else if (changes.domain_exclusions && areaName === 'sync') {
+        // Re-check domain exclusion status
+        checkDomainExclusion().then(() => {
+            if (domain_excluded) {
+                hide_tooltip();
+            }
+        });
     }
 });
 
-// On load, get disabled state
-browser.storage && browser.storage.local.get('lvt_disabled', (data) => {
-    lvt_disabled = !!data.lvt_disabled;
-});
+// Initialize extension state
+async function initializeExtension() {
+    // Check disabled state
+    try {
+        const data = await browser.storage.local.get('lvt_disabled');
+        lvt_disabled = !!data.lvt_disabled;
+    } catch (error) {
+        console.warn('Failed to get disabled state:', error);
+    }
+    
+    // Check domain exclusions
+    await checkDomainExclusion();
+    
+    // Send initial domain status to background script
+    browser.runtime.sendMessage({
+        type: 'lvt:domain_status_changed',
+        excluded: domain_excluded
+    }).catch(() => {
+        // Ignore errors if background script isn't available
+    });
+}
+
+// Initialize when content script loads
+initializeExtension();
 
 function show_tooltip(text, x, y) {
-    if (lvt_disabled) return;
+    if (lvt_disabled || domain_excluded) return;
     if (!tooltip_div) {
         tooltip_div = document.createElement("div");
         tooltip_div.style.position = "fixed";
@@ -52,7 +142,7 @@ function hide_tooltip() {
 }
 
 document.addEventListener("mouseover", function(e) {
-    if (lvt_disabled) return;
+    if (lvt_disabled || domain_excluded) return;
     let a;
     for (a = e.target; a !== null; a = a.parentElement) {
         if (a.tagName === "A" || a.tagName === "AREA") {

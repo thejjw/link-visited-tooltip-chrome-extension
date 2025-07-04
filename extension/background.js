@@ -3,7 +3,7 @@
 
 // Minimal background script for Chrome tooltip extension
 
-// Helper: update badge
+// Helper: update badge (global, but we'll manage per-tab state)
 function updateBadge(disabled, excluded = false) {
     if (disabled) {
         chrome.action.setBadgeText({ text: 'OFF' });
@@ -82,7 +82,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         
         return true; // async
     } else if (msg.type === "lvt:domain_status_changed") {
-        // Update badge based on domain exclusion status
+        // Update badge based on domain exclusion status from the currently visible tab
         chrome.storage.local.get('lvt_disabled', (data) => {
             const disabled = !!data.lvt_disabled;
             const excluded = !!msg.excluded;

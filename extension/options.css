@@ -231,6 +231,35 @@ footer {
     border: 1px solid #bee5eb;
 }
 
+.storage-status {
+    text-align: center;
+    margin-bottom: 15px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.storage-status.sync {
+    background-color: #e8f5e8;
+    color: #2d5016;
+    border: 1px solid #b7d4b7;
+}
+
+.storage-status.local {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.copyright {
+    text-align: center;
+    color: #7f8c8d;
+    font-size: 12px;
+    margin-top: 15px;
+    padding-top: 10px;
+}
+
 /* Responsive design */
 @media (max-width: 600px) {
     .container {

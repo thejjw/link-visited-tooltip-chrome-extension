@@ -41,14 +41,17 @@
                 <h3>Pattern Examples</h3>
                 <ul class="examples">
                     <li><code>example.com</code> - Excludes example.com and all subdomains (a.example.com, b.example.com, etc.)</li>
-                    <li><code>app.example.com</code> - Excludes only app.example.com specifically</li>
-                    <li><code>localhost</code> - Excludes localhost and all localhost subdomains</li>
+                    <li><code>app.example.com</code> - Excludes app.example.com and its subdomains, but won't block example.com</li>
                 </ul>
             </section>
         </main>
 
         <footer>
+            <div class="storage-status">
+                <span id="storage-type"></span>
+            </div>
             <div class="status" id="status"></div>
+            <div class="copyright">© 2025 @thejjw • <span id="version"></span></div>
         </footer>
     </div>
 

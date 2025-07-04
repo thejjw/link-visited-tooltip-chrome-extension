@@ -1,14 +1,21 @@
 // Options page JavaScript for Link Visited Tooltip extension
 
+// Version constant - update this when releasing new versions
+const EXTENSION_VERSION = '1.4.0';
+
 // Storage helper functions
 const storage = {
+    _usingSync: null, // Track which storage type we're using
+    
     async get(key) {
         try {
             // Try sync storage first, fall back to local
             const result = await chrome.storage.sync.get(key);
+            this._usingSync = true;
             return result[key];
         } catch (error) {
             console.warn('Sync storage not available, using local storage:', error);
+            this._usingSync = false;
             const result = await chrome.storage.local.get(key);
             return result[key];
         }
@@ -18,9 +25,32 @@ const storage = {
         try {
             // Try sync storage first, fall back to local
             await chrome.storage.sync.set({ [key]: value });
+            this._usingSync = true;
         } catch (error) {
             console.warn('Sync storage not available, using local storage:', error);
+            this._usingSync = false;
             await chrome.storage.local.set({ [key]: value });
+        }
+    },
+    
+    isUsingSync() {
+        return this._usingSync === true;
+    },
+    
+    isUsingLocal() {
+        return this._usingSync === false;
+    },
+    
+    // Log storage usage for debugging/troubleshooting
+    logStorageUsage() {
+        if (this._usingSync) {
+            chrome.storage.sync.getBytesInUse(null, (bytesInUse) => {
+                console.log(`[Link Visited Tooltip] Sync storage used: ${bytesInUse} bytes (${Math.round(bytesInUse/1024*100)/100} KB / 100 KB limit (sync))`);
+            });
+        } else {
+            chrome.storage.local.getBytesInUse(null, (bytesInUse) => {
+                console.log(`[Link Visited Tooltip] Local storage used: ${bytesInUse} bytes (${Math.round(bytesInUse/1024*100)/100} KB / ~5000 KB limit (local))`);
+            });
         }
     }
 };
@@ -36,6 +66,7 @@ class DomainExclusions {
         await this.loadExclusions();
         this.setupEventListeners();
         this.renderExclusions();
+        this.updateStorageStatus();
     }
 
     async loadExclusions() {
@@ -51,6 +82,7 @@ class DomainExclusions {
         try {
             await storage.set('domain_exclusions', this.exclusions);
             this.showStatus('Settings saved successfully', 'success');
+            this.updateStorageStatus(); // Update storage status after save
         } catch (error) {
             console.error('Failed to save exclusions:', error);
             this.showStatus('Failed to save settings', 'error');
@@ -164,6 +196,25 @@ class DomainExclusions {
         return div.innerHTML;
     }
 
+    updateStorageStatus() {
+        const storageElement = document.getElementById('storage-type');
+        if (!storageElement) return;
+        
+        if (storage.isUsingSync()) {
+            storageElement.textContent = '☁️ Settings synced to your Google account';
+            storageElement.className = 'storage-status sync';
+        } else if (storage.isUsingLocal()) {
+            storageElement.textContent = '💾 Settings saved locally (not synced)';
+            storageElement.className = 'storage-status local';
+        } else {
+            storageElement.textContent = '⚠️ Storage status unknown';
+            storageElement.className = 'storage-status local';
+        }
+        
+        // Log storage usage for debugging
+        storage.logStorageUsage();
+    }
+
     showStatus(message, type = 'info') {
         const status = document.getElementById('status');
         status.textContent = message;
@@ -179,5 +230,12 @@ class DomainExclusions {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+    // Populate version in footer
+    const versionElement = document.getElementById('version');
+    if (versionElement) {
+        versionElement.textContent = `v${EXTENSION_VERSION}`;
+    }
+    
+    // Initialize domain exclusions
     new DomainExclusions();
 });

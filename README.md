@@ -10,7 +10,7 @@ A minimal Chrome extension that shows a tooltip when you hover over a link, indi
 - **Domain exclusions:** Configure domains where the tooltip should not appear through the options page.
 - **Privacy-friendly:** No data is sent anywhere; all history and bookmark checks are local.
 - **Chrome-only:** Designed for Google Chrome (Manifest V3).
-- **Enable/disable:** Click the extension icon to disable or enable the tooltip feature. When disabled, the icon shows an 'OFF' badge. The change takes effect for any new pages you load. (no `tabs` permission) For tabs that are already open, you will need to reload them for the setting to apply.
+- **Enable/disable:** Click the extension icon to disable or enable the tooltip feature. When disabled, the icon shows an 'OFF' badge. When enabled but on an excluded domain, the icon shows an 'EXCL' badge (orange).
 
 ## Installation
 
@@ -40,7 +40,7 @@ _(Note: The Chrome Web Store version may not always have the latest updates.)_
 
 #### Pattern Examples:
 - `example.com` - Excludes example.com and all subdomains (a.example.com, b.example.com, etc.)
-- `app.example.com` - Excludes only app.example.com specifically
+- `app.example.com` - Excludes app.example.com and its subdomains, but won't block example.com
 - `localhost` - Excludes localhost and all localhost subdomains
 
 ## License

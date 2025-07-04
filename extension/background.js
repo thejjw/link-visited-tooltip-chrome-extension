@@ -4,10 +4,13 @@
 // Minimal background script for Chrome tooltip extension
 
 // Helper: update badge
-function updateBadge(disabled) {
+function updateBadge(disabled, excluded = false) {
     if (disabled) {
         chrome.action.setBadgeText({ text: 'OFF' });
         chrome.action.setBadgeBackgroundColor({ color: '#d00' });
+    } else if (excluded) {
+        chrome.action.setBadgeText({ text: 'EXCL' });
+        chrome.action.setBadgeBackgroundColor({ color: '#ff8c00' }); // Orange color for excluded
     } else {
         chrome.action.setBadgeText({ text: '' });
     }
@@ -16,7 +19,7 @@ function updateBadge(disabled) {
 // On install, set enabled by default and create context menu
 chrome.runtime.onInstalled.addListener(() => {
     chrome.storage.local.set({ lvt_disabled: false });
-    updateBadge(false);
+    updateBadge(false, false);
     
     // Create context menu for options
     chrome.contextMenus.create({
@@ -31,7 +34,10 @@ chrome.action.onClicked.addListener(() => {
     chrome.storage.local.get('lvt_disabled', (data) => {
         const disabled = !data.lvt_disabled;
         chrome.storage.local.set({ lvt_disabled: disabled });
-        updateBadge(disabled);
+        updateBadge(disabled, false);
+        
+        // Content scripts will detect the storage change automatically
+        // No need to send messages directly to tabs
     });
 });
 
@@ -75,13 +81,20 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         });
         
         return true; // async
+    } else if (msg.type === "lvt:domain_status_changed") {
+        // Update badge based on domain exclusion status
+        chrome.storage.local.get('lvt_disabled', (data) => {
+            const disabled = !!data.lvt_disabled;
+            const excluded = !!msg.excluded;
+            updateBadge(disabled, excluded && !disabled);
+        });
     }
 });
 
 // On startup, set badge state
 chrome.runtime.onStartup.addListener(() => {
     chrome.storage.local.get('lvt_disabled', (data) => {
-        updateBadge(!!data.lvt_disabled);
+        updateBadge(!!data.lvt_disabled, false);
     });
 });
 
@@ -89,21 +102,5 @@ chrome.runtime.onStartup.addListener(() => {
 chrome.contextMenus.onClicked.addListener((info, tab) => {
     if (info.menuItemId === "lvt-options") {
         chrome.runtime.openOptionsPage();
-    }
-});
-
-// Listen for storage changes to notify content scripts about domain exclusion updates
-chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (changes.domain_exclusions) {
-        // Notify all content scripts to re-check their domain status
-        chrome.tabs.query({}, (tabs) => {
-            tabs.forEach(tab => {
-                chrome.tabs.sendMessage(tab.id, {
-                    type: 'lvt:domain_exclusions_updated'
-                }).catch(() => {
-                    // Ignore errors for tabs that don't have content scripts
-                });
-            });
-        });
     }
 });

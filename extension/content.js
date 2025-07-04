@@ -55,19 +55,30 @@ function isCurrentDomainExcluded(exclusions) {
 async function checkDomainExclusion() {
     try {
         const exclusions = await storage.get('domain_exclusions');
+        const wasExcluded = domain_excluded;
         domain_excluded = isCurrentDomainExcluded(exclusions);
+        
+        // Notify background script if exclusion status changed
+        if (wasExcluded !== domain_excluded) {
+            browser.runtime.sendMessage({
+                type: 'lvt:domain_status_changed',
+                excluded: domain_excluded
+            }).catch(() => {
+                // Ignore errors if background script isn't available
+            });
+        }
     } catch (error) {
         console.warn('Failed to check domain exclusions:', error);
         domain_excluded = false;
     }
 }
 
-// Listen for enable/disable messages and domain exclusion updates
-browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    if (msg.type === 'lvt:set_disabled') {
-        lvt_disabled = !!msg.disabled;
+// Listen for storage changes instead of messages
+browser.storage.onChanged.addListener((changes, areaName) => {
+    if (changes.lvt_disabled && areaName === 'local') {
+        lvt_disabled = !!changes.lvt_disabled.newValue;
         if (lvt_disabled) hide_tooltip();
-    } else if (msg.type === 'lvt:domain_exclusions_updated') {
+    } else if (changes.domain_exclusions && areaName === 'sync') {
         // Re-check domain exclusion status
         checkDomainExclusion().then(() => {
             if (domain_excluded) {
@@ -89,6 +100,14 @@ async function initializeExtension() {
     
     // Check domain exclusions
     await checkDomainExclusion();
+    
+    // Send initial domain status to background script
+    browser.runtime.sendMessage({
+        type: 'lvt:domain_status_changed',
+        excluded: domain_excluded
+    }).catch(() => {
+        // Ignore errors if background script isn't available
+    });
 }
 
 // Initialize when content script loads

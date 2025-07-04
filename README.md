@@ -48,8 +48,7 @@ See [LICENSE](LICENSE).
 
 ## Attribution
 
-This extension is a minimal, Chrome-focused rewrite inspired by [Link Status Redux](https://github.com/jaatroko/link-status-redux) by Juha Aatrokoski.  
-Original project: [Link Status Redux on GitHub](https://github.com/jaatroko/link-status-redux)
+This extension is a minimal, Chrome-focused rewrite inspired by Link Status Redux (Juha Aatrokoski, [Link Status Redux on GitHub](https://github.com/jaatroko/link-status-redux))
 
 ---
 

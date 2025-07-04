@@ -5,53 +5,20 @@ const EXTENSION_VERSION = '1.4.0';
 
 // Storage helper functions
 const storage = {
-    _usingSync: null, // Track which storage type we're using
-    
     async get(key) {
-        try {
-            // Try sync storage first, fall back to local
-            const result = await chrome.storage.sync.get(key);
-            this._usingSync = true;
-            return result[key];
-        } catch (error) {
-            console.warn('Sync storage not available, using local storage:', error);
-            this._usingSync = false;
-            const result = await chrome.storage.local.get(key);
-            return result[key];
-        }
+        const result = await chrome.storage.sync.get(key);
+        return result[key];
     },
     
     async set(key, value) {
-        try {
-            // Try sync storage first, fall back to local
-            await chrome.storage.sync.set({ [key]: value });
-            this._usingSync = true;
-        } catch (error) {
-            console.warn('Sync storage not available, using local storage:', error);
-            this._usingSync = false;
-            await chrome.storage.local.set({ [key]: value });
-        }
-    },
-    
-    isUsingSync() {
-        return this._usingSync === true;
-    },
-    
-    isUsingLocal() {
-        return this._usingSync === false;
+        await chrome.storage.sync.set({ [key]: value });
     },
     
     // Log storage usage for debugging/troubleshooting
     logStorageUsage() {
-        if (this._usingSync) {
-            chrome.storage.sync.getBytesInUse(null, (bytesInUse) => {
-                console.log(`[Link Visited Tooltip] Sync storage used: ${bytesInUse} bytes (${Math.round(bytesInUse/1024*100)/100} KB / 100 KB limit (sync))`);
-            });
-        } else {
-            chrome.storage.local.getBytesInUse(null, (bytesInUse) => {
-                console.log(`[Link Visited Tooltip] Local storage used: ${bytesInUse} bytes (${Math.round(bytesInUse/1024*100)/100} KB / ~5000 KB limit (local))`);
-            });
-        }
+        chrome.storage.sync.getBytesInUse(null, (bytesInUse) => {
+            console.log(`[Link Visited Tooltip] Current storage usage: ${bytesInUse} bytes (${Math.round(bytesInUse/1024*100)/100} KB)`);
+        });
     }
 };
 
@@ -200,16 +167,8 @@ class DomainExclusions {
         const storageElement = document.getElementById('storage-type');
         if (!storageElement) return;
         
-        if (storage.isUsingSync()) {
-            storageElement.textContent = '☁️ Settings synced to your Google account';
-            storageElement.className = 'storage-status sync';
-        } else if (storage.isUsingLocal()) {
-            storageElement.textContent = '💾 Settings saved locally (not synced)';
-            storageElement.className = 'storage-status local';
-        } else {
-            storageElement.textContent = '⚠️ Storage status unknown';
-            storageElement.className = 'storage-status local';
-        }
+        storageElement.textContent = '☁️ Settings will be synced to your Google account if you are logged in';
+        storageElement.className = 'storage-status sync';
         
         // Log storage usage for debugging
         storage.logStorageUsage();

@@ -13,10 +13,17 @@ function updateBadge(disabled) {
     }
 }
 
-// On install, set enabled by default
+// On install, set enabled by default and create context menu
 chrome.runtime.onInstalled.addListener(() => {
     chrome.storage.local.set({ lvt_disabled: false });
     updateBadge(false);
+    
+    // Create context menu for options
+    chrome.contextMenus.create({
+        id: "lvt-options",
+        title: "Options",
+        contexts: ["action"]
+    });
 });
 
 // Toggle enabled/disabled on icon click
@@ -76,4 +83,27 @@ chrome.runtime.onStartup.addListener(() => {
     chrome.storage.local.get('lvt_disabled', (data) => {
         updateBadge(!!data.lvt_disabled);
     });
+});
+
+// Handle context menu clicks
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    if (info.menuItemId === "lvt-options") {
+        chrome.runtime.openOptionsPage();
+    }
+});
+
+// Listen for storage changes to notify content scripts about domain exclusion updates
+chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (changes.domain_exclusions) {
+        // Notify all content scripts to re-check their domain status
+        chrome.tabs.query({}, (tabs) => {
+            tabs.forEach(tab => {
+                chrome.tabs.sendMessage(tab.id, {
+                    type: 'lvt:domain_exclusions_updated'
+                }).catch(() => {
+                    // Ignore errors for tabs that don't have content scripts
+                });
+            });
+        });
+    }
 });

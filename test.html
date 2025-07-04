@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page for Link Visited Tooltip</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-links {
+            margin: 20px 0;
+        }
+        .test-links a {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f0f0f0;
+            text-decoration: none;
+            color: #333;
+            border-radius: 4px;
+        }
+        .test-links a:hover {
+            background-color: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Page for Link Visited Tooltip Extension</h1>
+    
+    <h2>Instructions</h2>
+    <ol>
+        <li>Load this extension in Chrome (Developer mode)</li>
+        <li>Right-click the extension icon and select "Options" to configure domain exclusions</li>
+        <li>Hover over the links below to see the tooltip functionality</li>
+        <li>Try adding this domain to the exclusions to test the feature</li>
+    </ol>
+    
+    <h2>Test Links</h2>
+    <div class="test-links">
+        <a href="https://google.com">Google (you probably visited this)</a>
+        <a href="https://example.com">Example.com</a>
+        <a href="https://github.com">GitHub</a>
+        <a href="https://stackoverflow.com">Stack Overflow</a>
+        <a href="https://never-visited-test-site-12345.com">Never visited site (should not show tooltip)</a>
+        <a href="#internal-link">Internal link</a>
+    </div>
+
+    <h2>Domain Exclusion Testing</h2>
+    <p>
+        To test domain exclusions:
+    </p>
+    <ol>
+        <li>Right-click the extension icon and select "Options"</li>
+        <li>Add this domain to the exclusions (you can see the current domain in the address bar)</li>
+        <li>Come back to this page and verify the tooltips no longer appear</li>
+        <li>Remove the exclusion and verify tooltips work again</li>
+    </ol>
+
+    <h2 id="internal-link">Internal Section</h2>
+    <p>This is an internal section for testing internal links.</p>
+</body>
+</html>

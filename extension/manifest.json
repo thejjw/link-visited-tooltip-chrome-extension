@@ -14,7 +14,8 @@
         "bookmarks",
         "history",
         "storage",
-        "contextMenus"
+        "contextMenus",
+        "tabs"
     ],
     "host_permissions": [
         "<all_urls>"

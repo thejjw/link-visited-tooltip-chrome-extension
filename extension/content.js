@@ -51,19 +51,6 @@ function isCurrentDomainExcluded(exclusions) {
     return false;
 }
 
-// Send domain status to background script (with visibility check)
-function notifyDomainStatus() {
-    // Only send if the page is visible (active tab)
-    if (!document.hidden) {
-        browser.runtime.sendMessage({
-            type: 'lvt:domain_status_changed',
-            excluded: domain_excluded
-        }).catch(() => {
-            // Ignore errors if background script isn't available
-        });
-    }
-}
-
 // Check if extension should run on current domain
 async function checkDomainExclusion() {
     try {
@@ -73,7 +60,12 @@ async function checkDomainExclusion() {
         
         // Notify background script if exclusion status changed
         if (wasExcluded !== domain_excluded) {
-            notifyDomainStatus();
+            browser.runtime.sendMessage({
+                type: 'lvt:domain_status_changed',
+                excluded: domain_excluded
+            }).catch(() => {
+                // Ignore errors if background script isn't available
+            });
         }
     } catch (error) {
         console.warn('Failed to check domain exclusions:', error);
@@ -110,19 +102,16 @@ async function initializeExtension() {
     await checkDomainExclusion();
     
     // Send initial domain status to background script
-    notifyDomainStatus();
+    browser.runtime.sendMessage({
+        type: 'lvt:domain_status_changed',
+        excluded: domain_excluded
+    }).catch(() => {
+        // Ignore errors if background script isn't available
+    });
 }
 
 // Initialize when content script loads
 initializeExtension();
-
-// Listen for page visibility changes (tab switching)
-document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) {
-        // Tab became visible, update badge
-        notifyDomainStatus();
-    }
-});
 
 function show_tooltip(text, x, y) {
     if (lvt_disabled || domain_excluded) return;

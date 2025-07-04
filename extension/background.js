@@ -3,16 +3,21 @@
 
 // Minimal background script for Chrome tooltip extension
 
-// Helper: update badge (global, but we'll manage per-tab state)
-function updateBadge(disabled, excluded = false) {
-    if (disabled) {
-        chrome.action.setBadgeText({ text: 'OFF' });
-        chrome.action.setBadgeBackgroundColor({ color: '#d00' });
-    } else if (excluded) {
-        chrome.action.setBadgeText({ text: 'EXCL' });
-        chrome.action.setBadgeBackgroundColor({ color: '#ff8c00' }); // Orange color for excluded
+// Helper: update badge for specific tab
+function updateBadge(disabled, excluded = false, tabId = null) {
+    const text = disabled ? 'OFF' : (excluded ? 'EXCL' : '');
+    const color = disabled ? '#d00' : '#ff8c00';
+    
+    if (tabId) {
+        chrome.action.setBadgeText({ text, tabId });
+        if (text) {
+            chrome.action.setBadgeBackgroundColor({ color, tabId });
+        }
     } else {
-        chrome.action.setBadgeText({ text: '' });
+        chrome.action.setBadgeText({ text });
+        if (text) {
+            chrome.action.setBadgeBackgroundColor({ color });
+        }
     }
 }
 
@@ -30,14 +35,19 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 // Toggle enabled/disabled on icon click
-chrome.action.onClicked.addListener(() => {
+chrome.action.onClicked.addListener((tab) => {
     chrome.storage.local.get('lvt_disabled', (data) => {
         const disabled = !data.lvt_disabled;
         chrome.storage.local.set({ lvt_disabled: disabled });
-        updateBadge(disabled, false);
+        
+        // Update badge for all tabs
+        chrome.tabs.query({}, (tabs) => {
+            tabs.forEach(t => {
+                updateBadge(disabled, false, t.id);
+            });
+        });
         
         // Content scripts will detect the storage change automatically
-        // No need to send messages directly to tabs
     });
 });
 
@@ -82,19 +92,27 @@ chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse) {
         
         return true; // async
     } else if (msg.type === "lvt:domain_status_changed") {
-        // Update badge based on domain exclusion status from the currently visible tab
-        chrome.storage.local.get('lvt_disabled', (data) => {
-            const disabled = !!data.lvt_disabled;
-            const excluded = !!msg.excluded;
-            updateBadge(disabled, excluded && !disabled);
-        });
+        // Update badge for the specific tab that sent this message
+        const tabId = sender.tab?.id;
+        if (tabId) {
+            chrome.storage.local.get('lvt_disabled', (data) => {
+                const disabled = !!data.lvt_disabled;
+                const excluded = !!msg.excluded;
+                updateBadge(disabled, excluded && !disabled, tabId);
+            });
+        }
     }
 });
 
-// On startup, set badge state
+// On startup, set badge state for all tabs
 chrome.runtime.onStartup.addListener(() => {
     chrome.storage.local.get('lvt_disabled', (data) => {
-        updateBadge(!!data.lvt_disabled, false);
+        const disabled = !!data.lvt_disabled;
+        chrome.tabs.query({}, (tabs) => {
+            tabs.forEach(tab => {
+                updateBadge(disabled, false, tab.id);
+            });
+        });
     });
 });
 

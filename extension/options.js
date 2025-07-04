@@ -66,7 +66,7 @@ class DomainExclusions {
         });
 
         // Add domain on Enter key
-        domainInput.addEventListener('keypress', (e) => {
+        domainInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 this.addDomain(domainInput.value.trim());
             }

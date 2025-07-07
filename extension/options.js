@@ -1,7 +1,7 @@
 // Options page JavaScript for Link Visited Tooltip extension
 
 // Version constant - update this when releasing new versions
-const EXTENSION_VERSION = '1.4.0';
+const EXTENSION_VERSION = '1.4.1';
 
 // Storage helper functions
 const storage = {

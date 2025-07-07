@@ -10,7 +10,7 @@ A minimal Chrome extension that shows a tooltip when you hover over a link, indi
 - **Domain exclusions:** Configure domains where the tooltip should not appear through the options page. The list of configured domains syncs to your Google account when available.
 - **Privacy-friendly:** All history and bookmark checks are local.
 - **Chrome extension:** Manifest V3 extension.
-- **Enable/disable:** Click the extension icon to disable or enable the tooltip feature. When disabled, the icon shows an 'OFF' badge. When enabled but on an excluded domain, the icon shows an 'EXCL' badge (orange).
+- **Enable/disable:** Click the extension icon to disable or enable the tooltip feature. When disabled, the icon shows an 'OFF' badge.
 
 ## Installation
 

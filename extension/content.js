@@ -55,18 +55,7 @@ function isCurrentDomainExcluded(exclusions) {
 async function checkDomainExclusion() {
     try {
         const exclusions = await storage.get('domain_exclusions');
-        const wasExcluded = domain_excluded;
         domain_excluded = isCurrentDomainExcluded(exclusions);
-        
-        // Notify background script if exclusion status changed
-        if (wasExcluded !== domain_excluded) {
-            browser.runtime.sendMessage({
-                type: 'lvt:domain_status_changed',
-                excluded: domain_excluded
-            }).catch(() => {
-                // Ignore errors if background script isn't available
-            });
-        }
     } catch (error) {
         console.warn('Failed to check domain exclusions:', error);
         domain_excluded = false;
@@ -100,14 +89,6 @@ async function initializeExtension() {
     
     // Check domain exclusions
     await checkDomainExclusion();
-    
-    // Send initial domain status to background script
-    browser.runtime.sendMessage({
-        type: 'lvt:domain_status_changed',
-        excluded: domain_excluded
-    }).catch(() => {
-        // Ignore errors if background script isn't available
-    });
 }
 
 // Initialize when content script loads

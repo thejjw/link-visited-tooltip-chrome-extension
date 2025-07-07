@@ -38,6 +38,4 @@ This document provides detailed explanation for each permission requested by the
 **Technical necessity:** Uses `chrome.contextMenus.create()` to add options access via right-click menu.
 
 ### `tabs`
-**Justification:** Required for per-tab badge functionality to show correct status (normal/excluded/disabled) on each tab based on domain exclusion settings. Without this permission, all tabs would show the same badge status, confusing users about which domains are excluded.
-
-**Technical necessity:** Uses `chrome.action.setBadgeText({ text, tabId })` to set different badge states per tab, and `chrome.tabs.query()` to update badges when global settings change.
+Removed per Google Chrome Web Store request.

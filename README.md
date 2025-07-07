@@ -42,3 +42,7 @@ This extension is a minimal, Chrome-focused rewrite inspired by Link Status Redu
 
 ## Author
 - Jaewoo Jeon [@thejjw](https://github.com/thejjw)
+
+If you find this extension helpful, consider supporting its development:
+
+[![Buy Me A Coffee](https://cdn.buymeacoffee.com/buttons/default-yellow.png)](https://www.buymeacoffee.com/jwjeon)

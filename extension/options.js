@@ -26,11 +26,13 @@ const storage = {
 class DomainExclusions {
     constructor() {
         this.exclusions = [];
+        this.transparentTooltip = false;
         this.init();
     }
 
     async init() {
         await this.loadExclusions();
+        await this.loadTransparencySettings();
         this.setupEventListeners();
         this.renderExclusions();
         this.updateStorageStatus();
@@ -45,6 +47,26 @@ class DomainExclusions {
         }
     }
 
+    async loadTransparencySettings() {
+        try {
+            // Default to true (transparent) if no setting exists
+            const savedSetting = await storage.get('transparent_tooltip');
+            this.transparentTooltip = savedSetting !== undefined ? savedSetting : true;
+            const checkbox = document.getElementById('transparent-tooltip');
+            if (checkbox) {
+                checkbox.checked = this.transparentTooltip;
+            }
+        } catch (error) {
+            console.error('Failed to load transparency settings:', error);
+            // Default to transparent on error
+            this.transparentTooltip = true;
+            const checkbox = document.getElementById('transparent-tooltip');
+            if (checkbox) {
+                checkbox.checked = true;
+            }
+        }
+    }
+
     async saveExclusions() {
         try {
             await storage.set('domain_exclusions', this.exclusions);
@@ -56,9 +78,20 @@ class DomainExclusions {
         }
     }
 
+    async saveTransparencySettings() {
+        try {
+            await storage.set('transparent_tooltip', this.transparentTooltip);
+            this.showStatus('Transparency setting saved', 'success');
+        } catch (error) {
+            console.error('Failed to save transparency setting:', error);
+            this.showStatus('Failed to save transparency setting', 'error');
+        }
+    }
+
     setupEventListeners() {
         const domainInput = document.getElementById('domain-input');
         const addBtn = document.getElementById('add-btn');
+        const transparentCheckbox = document.getElementById('transparent-tooltip');
 
         // Add domain on button click
         addBtn.addEventListener('click', () => {
@@ -77,6 +110,14 @@ class DomainExclusions {
             const value = domainInput.value.trim();
             addBtn.disabled = !value || this.exclusions.includes(value);
         });
+
+        // Handle transparency toggle
+        if (transparentCheckbox) {
+            transparentCheckbox.addEventListener('change', async (e) => {
+                this.transparentTooltip = e.target.checked;
+                await this.saveTransparencySettings();
+            });
+        }
     }
 
     validateDomain(domain) {

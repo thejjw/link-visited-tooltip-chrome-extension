@@ -289,3 +289,55 @@ footer {
         text-align: center;
     }
 }
+
+/* Appearance section styles */
+main {
+    margin-bottom: 30px;
+}
+
+.appearance-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.setting-item {
+    margin-bottom: 15px;
+}
+
+.setting-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+    transition: background-color 0.3s ease;
+}
+
+.setting-label:hover {
+    background-color: #f1f3f4;
+}
+
+.setting-label input[type="checkbox"] {
+    margin: 0;
+    transform: scale(1.2);
+}
+
+.setting-text {
+    flex: 1;
+}
+
+.setting-text strong {
+    display: block;
+    color: #2c3e50;
+    margin-bottom: 4px;
+}
+
+.setting-description {
+    color: #6c757d;
+    font-size: 14px;
+    line-height: 1.4;
+}

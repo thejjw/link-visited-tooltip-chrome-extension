@@ -99,7 +99,7 @@ function show_tooltip(text, x, y) {
     if (!tooltip_div) {
         tooltip_div = document.createElement("div");
         tooltip_div.style.position = "fixed";
-        tooltip_div.style.background = "rgba(0,0,0,0.6)";
+        tooltip_div.style.background = "rgba(0,0,0,0.2)";
         tooltip_div.style.color = "#fff";
         tooltip_div.style.padding = "6px 12px";
         tooltip_div.style.borderRadius = "6px";

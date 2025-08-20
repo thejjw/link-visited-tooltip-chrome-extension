@@ -1,7 +1,7 @@
 // Options page JavaScript for Link Visited Tooltip extension
 
 // Version constant - update this when releasing new versions
-const EXTENSION_VERSION = '1.4.1';
+const EXTENSION_VERSION = '1.5.1';
 
 // Storage helper functions
 const storage = {
@@ -26,7 +26,7 @@ const storage = {
 class DomainExclusions {
     constructor() {
         this.exclusions = [];
-        this.transparentTooltip = false;
+        this.tooltipOpacity = 0.2; // Default opacity (more transparent)
         this.init();
     }
 
@@ -36,6 +36,7 @@ class DomainExclusions {
         this.setupEventListeners();
         this.renderExclusions();
         this.updateStorageStatus();
+        this.updatePreview();
     }
 
     async loadExclusions() {
@@ -49,20 +50,23 @@ class DomainExclusions {
 
     async loadTransparencySettings() {
         try {
-            // Default to true (transparent) if no setting exists
-            const savedSetting = await storage.get('transparent_tooltip');
-            this.transparentTooltip = savedSetting !== undefined ? savedSetting : true;
-            const checkbox = document.getElementById('transparent-tooltip');
-            if (checkbox) {
-                checkbox.checked = this.transparentTooltip;
+            // Default to 0.2 (more transparent) if no setting exists
+            const savedOpacity = await storage.get('tooltip_opacity');
+            this.tooltipOpacity = savedOpacity !== undefined ? savedOpacity : 0.2;
+            
+            const slider = document.getElementById('transparency-slider');
+            if (slider) {
+                slider.value = this.tooltipOpacity;
             }
+            
+            this.updateActivePresetButton();
         } catch (error) {
             console.error('Failed to load transparency settings:', error);
-            // Default to transparent on error
-            this.transparentTooltip = true;
-            const checkbox = document.getElementById('transparent-tooltip');
-            if (checkbox) {
-                checkbox.checked = true;
+            // Default to 0.2 on error
+            this.tooltipOpacity = 0.2;
+            const slider = document.getElementById('transparency-slider');
+            if (slider) {
+                slider.value = this.tooltipOpacity;
             }
         }
     }
@@ -80,7 +84,7 @@ class DomainExclusions {
 
     async saveTransparencySettings() {
         try {
-            await storage.set('transparent_tooltip', this.transparentTooltip);
+            await storage.set('tooltip_opacity', this.tooltipOpacity);
             this.showStatus('Transparency setting saved', 'success');
         } catch (error) {
             console.error('Failed to save transparency setting:', error);
@@ -91,7 +95,8 @@ class DomainExclusions {
     setupEventListeners() {
         const domainInput = document.getElementById('domain-input');
         const addBtn = document.getElementById('add-btn');
-        const transparentCheckbox = document.getElementById('transparent-tooltip');
+        const transparencySlider = document.getElementById('transparency-slider');
+        const presetButtons = document.querySelectorAll('.preset-btn');
 
         // Add domain on button click
         addBtn.addEventListener('click', () => {
@@ -111,13 +116,35 @@ class DomainExclusions {
             addBtn.disabled = !value || this.exclusions.includes(value);
         });
 
-        // Handle transparency toggle
-        if (transparentCheckbox) {
-            transparentCheckbox.addEventListener('change', async (e) => {
-                this.transparentTooltip = e.target.checked;
+        // Handle transparency slider
+        if (transparencySlider) {
+            transparencySlider.addEventListener('input', (e) => {
+                this.tooltipOpacity = parseFloat(e.target.value);
+                this.updatePreview();
+                this.updateActivePresetButton();
+            });
+            
+            transparencySlider.addEventListener('change', async (e) => {
+                this.tooltipOpacity = parseFloat(e.target.value);
                 await this.saveTransparencySettings();
             });
         }
+
+        // Handle preset buttons
+        presetButtons.forEach(button => {
+            button.addEventListener('click', async (e) => {
+                const value = parseFloat(e.target.dataset.value);
+                this.tooltipOpacity = value;
+                
+                if (transparencySlider) {
+                    transparencySlider.value = value;
+                }
+                
+                this.updatePreview();
+                this.updateActivePresetButton();
+                await this.saveTransparencySettings();
+            });
+        });
     }
 
     validateDomain(domain) {
@@ -213,6 +240,25 @@ class DomainExclusions {
         
         // Log storage usage for debugging
         storage.logStorageUsage();
+    }
+
+    updatePreview() {
+        const tooltipSample = document.getElementById('tooltip-preview')?.querySelector('.tooltip-sample');
+        if (tooltipSample) {
+            tooltipSample.style.backgroundColor = `rgba(0, 0, 0, ${this.tooltipOpacity})`;
+        }
+    }
+
+    updateActivePresetButton() {
+        const presetButtons = document.querySelectorAll('.preset-btn');
+        presetButtons.forEach(button => {
+            const buttonValue = parseFloat(button.dataset.value);
+            if (Math.abs(buttonValue - this.tooltipOpacity) < 0.01) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        });
     }
 
     showStatus(message, type = 'info') {

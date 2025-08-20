@@ -18,12 +18,35 @@
                 <h2>Appearance</h2>
                 <div class="setting-item">
                     <label class="setting-label">
-                        <input type="checkbox" id="transparent-tooltip" />
                         <span class="setting-text">
-                            <strong>Transparent tooltip (default)</strong>
-                            <span class="setting-description">Keep tooltip transparent to see content behind it. Uncheck for opaque tooltip.</span>
+                            <strong>Tooltip Transparency</strong>
+                            <span class="setting-description">Adjust how transparent the tooltip appears over content</span>
                         </span>
                     </label>
+                    
+                    <div class="transparency-controls">
+                        <div class="slider-container">
+                            <input type="range" id="transparency-slider" min="0.2" max="0.85" step="0.05" value="0.85" />
+                            <div class="slider-labels">
+                                <span>More Transparent</span>
+                                <span>Less Transparent</span>
+                            </div>
+                        </div>
+                        
+                        <div class="preset-buttons">
+                            <button type="button" class="preset-btn" data-value="0.2">Very Transparent</button>
+                            <button type="button" class="preset-btn" data-value="0.5">Balanced</button>
+                            <button type="button" class="preset-btn" data-value="0.85">Opaque (Default)</button>
+                        </div>
+                        
+                        <div class="preview-container">
+                            <div class="preview-label">Preview:</div>
+                            <div class="tooltip-preview" id="tooltip-preview">
+                                <div class="sample-content">Sample webpage content behind tooltip</div>
+                                <div class="tooltip-sample">★ Visited 2 hours ago</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 

@@ -10,7 +10,7 @@ let anchor = null;
 let tooltip_div = null;
 let lvt_disabled = false;
 let domain_excluded = false;
-let transparent_tooltip = false;
+let tooltip_opacity = 0.2; // Default opacity
 
 // Storage helper functions
 const storage = {
@@ -75,9 +75,9 @@ browser.storage.onChanged.addListener((changes, areaName) => {
                 hide_tooltip();
             }
         });
-    } else if (changes.transparent_tooltip && areaName === 'sync') {
-        transparent_tooltip = !!changes.transparent_tooltip.newValue;
-        // Reset tooltip div so it recreates with new transparency
+    } else if (changes.tooltip_opacity && areaName === 'sync') {
+        tooltip_opacity = changes.tooltip_opacity.newValue || 0.2;
+        // Reset tooltip div so it recreates with new opacity
         if (tooltip_div) {
             tooltip_div.remove();
             tooltip_div = null;
@@ -95,15 +95,15 @@ async function initializeExtension() {
         console.warn('Failed to get disabled state:', error);
     }
     
-    // Check transparency setting
+    // Check opacity setting
     try {
-        const transparencyData = await storage.get('transparent_tooltip');
-        // Default to true (transparent) if no setting exists
-        transparent_tooltip = transparencyData !== undefined ? transparencyData : true;
+        const opacityData = await storage.get('tooltip_opacity');
+        // Default to 0.2 (transparent) if no setting exists
+        tooltip_opacity = opacityData !== undefined ? opacityData : 0.2;
     } catch (error) {
-        console.warn('Failed to get transparency setting:', error);
+        console.warn('Failed to get opacity setting:', error);
         // Default to transparent on error
-        transparent_tooltip = true;
+        tooltip_opacity = 0.2;
     }
     
     // Check domain exclusions
@@ -118,9 +118,8 @@ function show_tooltip(text, x, y) {
     if (!tooltip_div) {
         tooltip_div = document.createElement("div");
         tooltip_div.style.position = "fixed";
-        // Use transparent (0.2) or opaque (0.85) based on setting
-        const opacity = transparent_tooltip ? 0.2 : 0.85;
-        tooltip_div.style.background = `rgba(0,0,0,${opacity})`;
+        // Use the current opacity setting
+        tooltip_div.style.background = `rgba(0,0,0,${tooltip_opacity})`;
         tooltip_div.style.color = "#fff";
         tooltip_div.style.padding = "6px 12px";
         tooltip_div.style.borderRadius = "6px";

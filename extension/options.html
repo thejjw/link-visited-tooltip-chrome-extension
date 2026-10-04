@@ -17,6 +17,22 @@
             <section class="appearance-section">
                 <h2>Appearance</h2>
                 <div class="setting-item">
+                    <label class="setting-label" for="autohide-enabled">
+                        <span class="setting-text">
+                            <strong>Auto-hide tooltip</strong>
+                            <span class="setting-description">Clear a stale tooltip after a few seconds (useful when the page changes under the cursor). The tooltip stays while the pointer still points to the same link.</span>
+                        </span>
+                        <input type="checkbox" id="autohide-enabled" />
+                    </label>
+
+                    <div class="autohide-controls" id="autohide-controls">
+                        <label for="autohide-secs">Hide after (seconds):</label>
+                        <div class="input-group">
+                            <input type="number" id="autohide-secs" min="1" max="10" step="1" value="5" />
+                        </div>
+                    </div>
+                </div>
+                <div class="setting-item">
                     <label class="setting-label">
                         <span class="setting-text">
                             <strong>Tooltip Transparency</strong>

@@ -1,7 +1,7 @@
 // Options page JavaScript for Link Visited Tooltip extension
 
 // Version constant - update this when releasing new versions
-const EXTENSION_VERSION = '1.5.1';
+const EXTENSION_VERSION = '1.6.0';
 
 // Storage helper functions
 const storage = {
@@ -27,16 +27,20 @@ class DomainExclusions {
     constructor() {
         this.exclusions = [];
         this.tooltipOpacity = 0.2; // Default opacity (more transparent)
+        this.autohideEnabled = false; // Default OFF
+        this.autohideSecs = 5; // Default timeout in seconds
         this.init();
     }
 
     async init() {
         await this.loadExclusions();
         await this.loadTransparencySettings();
+        await this.loadAutohideSettings();
         this.setupEventListeners();
         this.renderExclusions();
         this.updateStorageStatus();
         this.updatePreview();
+        this.updateAutohideControls();
     }
 
     async loadExclusions() {
@@ -92,11 +96,56 @@ class DomainExclusions {
         }
     }
 
+    // Clamp autohide timeout to 1-10 seconds
+    clampAutohideSecs(value) {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return 5;
+        return Math.min(10, Math.max(1, Math.round(n)));
+    }
+
+    async loadAutohideSettings() {
+        try {
+            const enabled = await storage.get('tooltip_autohide_enabled');
+            this.autohideEnabled = !!enabled;
+            const secs = await storage.get('tooltip_autohide_secs');
+            this.autohideSecs = secs !== undefined ? this.clampAutohideSecs(secs) : 5;
+
+            const enabledCheckbox = document.getElementById('autohide-enabled');
+            if (enabledCheckbox) enabledCheckbox.checked = this.autohideEnabled;
+            const secsInput = document.getElementById('autohide-secs');
+            if (secsInput) secsInput.value = this.autohideSecs;
+        } catch (error) {
+            console.error('Failed to load autohide settings:', error);
+            this.autohideEnabled = false;
+            this.autohideSecs = 5;
+        }
+    }
+
+    async saveAutohideSettings() {
+        try {
+            await storage.set('tooltip_autohide_enabled', this.autohideEnabled);
+            await storage.set('tooltip_autohide_secs', this.autohideSecs);
+            this.showStatus('Auto-hide setting saved', 'success');
+        } catch (error) {
+            console.error('Failed to save autohide setting:', error);
+            this.showStatus('Failed to save auto-hide setting', 'error');
+        }
+    }
+
+    updateAutohideControls() {
+        const secsInput = document.getElementById('autohide-secs');
+        if (secsInput) secsInput.disabled = !this.autohideEnabled;
+        const controls = document.getElementById('autohide-controls');
+        if (controls) controls.classList.toggle('disabled', !this.autohideEnabled);
+    }
+
     setupEventListeners() {
         const domainInput = document.getElementById('domain-input');
         const addBtn = document.getElementById('add-btn');
         const transparencySlider = document.getElementById('transparency-slider');
         const presetButtons = document.querySelectorAll('.preset-btn');
+        const autohideEnabled = document.getElementById('autohide-enabled');
+        const autohideSecs = document.getElementById('autohide-secs');
 
         // Add domain on button click
         addBtn.addEventListener('click', () => {
@@ -145,6 +194,24 @@ class DomainExclusions {
                 await this.saveTransparencySettings();
             });
         });
+
+        // Handle autohide toggle
+        if (autohideEnabled) {
+            autohideEnabled.addEventListener('change', async (e) => {
+                this.autohideEnabled = e.target.checked;
+                this.updateAutohideControls();
+                await this.saveAutohideSettings();
+            });
+        }
+
+        // Handle autohide duration
+        if (autohideSecs) {
+            autohideSecs.addEventListener('change', async (e) => {
+                this.autohideSecs = this.clampAutohideSecs(e.target.value);
+                e.target.value = this.autohideSecs;
+                await this.saveAutohideSettings();
+            });
+        }
     }
 
     validateDomain(domain) {

@@ -11,6 +11,10 @@ let tooltip_div = null;
 let lvt_disabled = false;
 let domain_excluded = false;
 let tooltip_opacity = 0.2; // Default opacity
+let autohide_enabled = false; // Default OFF
+let autohide_secs = 5; // Default timeout in seconds
+let autohide_timer = null;
+let last_mouse = { x: 0, y: 0 };
 
 // Storage helper functions
 const storage = {
@@ -82,8 +86,76 @@ browser.storage.onChanged.addListener((changes, areaName) => {
             tooltip_div.remove();
             tooltip_div = null;
         }
+    } else if (changes.tooltip_autohide_enabled && areaName === 'sync') {
+        autohide_enabled = !!changes.tooltip_autohide_enabled.newValue;
+        if (!autohide_enabled) {
+            clearAutohide();
+        } else if (tooltip_div && tooltip_div.style.display === "block") {
+            scheduleAutohide();
+        }
+    } else if (changes.tooltip_autohide_secs && areaName === 'sync') {
+        autohide_secs = clampAutohideSecs(changes.tooltip_autohide_secs.newValue);
+        if (tooltip_div && tooltip_div.style.display === "block") {
+            scheduleAutohide();
+        }
     }
 });
+
+// Clamp autohide timeout to a sane range (seconds)
+function clampAutohideSecs(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return 5;
+    return Math.min(10, Math.max(1, Math.round(n)));
+}
+
+// Clear any pending autohide timer
+function clearAutohide() {
+    if (autohide_timer !== null) {
+        clearTimeout(autohide_timer);
+        autohide_timer = null;
+    }
+}
+
+// Schedule tooltip autohide after the configured timeout
+function scheduleAutohide() {
+    clearAutohide();
+    if (!autohide_enabled) return;
+    autohide_timer = setTimeout(onAutohideTimeout, autohide_secs * 1000);
+}
+
+// Check if the mouse pointer still points to the previous link
+function isStillHoveringAnchor() {
+    if (!anchor || !anchor.isConnected) return false;
+    try {
+        if (typeof anchor.matches === "function" && anchor.matches(":hover")) {
+            return true;
+        }
+    } catch (e) {
+        // Ignore invalid selector errors and fall through to elementFromPoint
+    }
+    try {
+        const el = document.elementFromPoint(last_mouse.x, last_mouse.y);
+        if (!el) return false;
+        if (typeof anchor.contains === "function" && anchor.contains(el)) return true;
+        if (typeof el.closest === "function" && el.closest("a, area") === anchor) return true;
+        return false;
+    } catch (e) {
+        return false;
+    }
+}
+
+// Autohide timeout handler: clear stale tooltips (e.g. page changed under cursor)
+function onAutohideTimeout() {
+    autohide_timer = null;
+    if (!autohide_enabled) return;
+    // Keep tooltip while the pointer still points to the same link
+    if (isStillHoveringAnchor()) {
+        scheduleAutohide();
+        return;
+    }
+    anchor = null;
+    hide_tooltip();
+}
 
 // Initialize extension state
 async function initializeExtension() {
@@ -105,6 +177,18 @@ async function initializeExtension() {
         // Default to transparent on error
         tooltip_opacity = 0.2;
     }
+
+    // Check autohide settings (default OFF, 5 seconds)
+    try {
+        const autohideEnabled = await storage.get('tooltip_autohide_enabled');
+        autohide_enabled = !!autohideEnabled;
+        const autohideSecs = await storage.get('tooltip_autohide_secs');
+        autohide_secs = autohideSecs !== undefined ? clampAutohideSecs(autohideSecs) : 5;
+    } catch (error) {
+        console.warn('Failed to get autohide settings:', error);
+        autohide_enabled = false;
+        autohide_secs = 5;
+    }
     
     // Check domain exclusions
     await checkDomainExclusion();
@@ -115,6 +199,7 @@ initializeExtension();
 
 function show_tooltip(text, x, y) {
     if (lvt_disabled || domain_excluded) return;
+    last_mouse = { x, y };
     if (!tooltip_div) {
         tooltip_div = document.createElement("div");
         tooltip_div.style.position = "fixed";
@@ -134,9 +219,11 @@ function show_tooltip(text, x, y) {
     tooltip_div.style.left = (x + 12) + "px";
     tooltip_div.style.top = (y + 12) + "px";
     tooltip_div.style.display = "block";
+    scheduleAutohide();
 }
 
 function hide_tooltip() {
+    clearAutohide();
     if (tooltip_div) {
         tooltip_div.style.display = "none";
     }
@@ -144,6 +231,7 @@ function hide_tooltip() {
 
 document.addEventListener("mouseover", function(e) {
     if (lvt_disabled || domain_excluded) return;
+    last_mouse = { x: e.clientX, y: e.clientY };
     let a;
     for (a = e.target; a !== null; a = a.parentElement) {
         if (a.tagName === "A" || a.tagName === "AREA") {
@@ -151,6 +239,10 @@ document.addEventListener("mouseover", function(e) {
         }
     }
     if (a === anchor) {
+        // Still over the same link: refresh autohide timer
+        if (a !== null && tooltip_div && tooltip_div.style.display === "block") {
+            scheduleAutohide();
+        }
         return;
     }
     anchor = a;
@@ -198,6 +290,10 @@ document.addEventListener("mouseover", function(e) {
             }
         })
         .catch(() => hide_tooltip());
+}, true);
+
+document.addEventListener("mousemove", function(e) {
+    last_mouse = { x: e.clientX, y: e.clientY };
 }, true);
 
 document.addEventListener("mouseout", function(e) {

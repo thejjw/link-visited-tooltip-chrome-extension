@@ -7,7 +7,9 @@ A minimal Chrome extension that shows a tooltip when you hover over a link, indi
 - **Simple tooltip:** On hovering any link, a small black tooltip appears near the cursor if you have visited the link before or if it's bookmarked.
 - **Visit time:** The tooltip displays how long ago you last visited the link (e.g., "Visited 2 hours, 5 mins ago").
 - **Bookmark indicator:** Links that are saved in your bookmarks show a ★ symbol in the tooltip.
-- **Domain exclusions:** Configure domains where the tooltip should not appear through the options page. The list of configured domains syncs to your Google account when available.
+- **Domain exclusions:** Configure domains where the tooltip should not appear through the options page.
+- **Appearance:** Adjust tooltip transparency and optionally auto-hide stale tooltips after a few seconds (with an option to hide even while still hovering) via the options page.
+- **Synced settings:** User-configured options sync to your Google account when available. The enable/disable toggle stays per-installation.
 - **Privacy-friendly:** All history and bookmark checks are local.
 - **Chrome extension:** Manifest V3 extension.
 - **Enable/disable:** Click the extension icon to disable or enable the tooltip feature. When disabled, the icon shows an 'OFF' badge.

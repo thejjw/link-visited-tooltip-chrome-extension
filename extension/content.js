@@ -13,6 +13,7 @@ let domain_excluded = false;
 let tooltip_opacity = 0.2; // Default opacity
 let autohide_enabled = false; // Default OFF
 let autohide_secs = 5; // Default timeout in seconds
+let autohide_hide_even_hovering = false; // Default: keep tooltip while still hovering
 let autohide_timer = null;
 let last_mouse = { x: 0, y: 0 };
 
@@ -98,6 +99,11 @@ browser.storage.onChanged.addListener((changes, areaName) => {
         if (tooltip_div && tooltip_div.style.display === "block") {
             scheduleAutohide();
         }
+    } else if (changes.tooltip_autohide_hide_even_hovering && areaName === 'sync') {
+        autohide_hide_even_hovering = !!changes.tooltip_autohide_hide_even_hovering.newValue;
+        if (tooltip_div && tooltip_div.style.display === "block") {
+            scheduleAutohide();
+        }
     }
 });
 
@@ -148,8 +154,9 @@ function isStillHoveringAnchor() {
 function onAutohideTimeout() {
     autohide_timer = null;
     if (!autohide_enabled) return;
-    // Keep tooltip while the pointer still points to the same link
-    if (isStillHoveringAnchor()) {
+    // Sub-option: always hide after timeout, even while still hovering.
+    // Tooltip reappears only when hover is re-initiated (leave and re-enter).
+    if (!autohide_hide_even_hovering && isStillHoveringAnchor()) {
         scheduleAutohide();
         return;
     }
@@ -184,10 +191,13 @@ async function initializeExtension() {
         autohide_enabled = !!autohideEnabled;
         const autohideSecs = await storage.get('tooltip_autohide_secs');
         autohide_secs = autohideSecs !== undefined ? clampAutohideSecs(autohideSecs) : 5;
+        const autohideHideEvenHovering = await storage.get('tooltip_autohide_hide_even_hovering');
+        autohide_hide_even_hovering = !!autohideHideEvenHovering;
     } catch (error) {
         console.warn('Failed to get autohide settings:', error);
         autohide_enabled = false;
         autohide_secs = 5;
+        autohide_hide_even_hovering = false;
     }
     
     // Check domain exclusions
@@ -239,8 +249,9 @@ document.addEventListener("mouseover", function(e) {
         }
     }
     if (a === anchor) {
-        // Still over the same link: refresh autohide timer
-        if (a !== null && tooltip_div && tooltip_div.style.display === "block") {
+        // Still over the same link: refresh autohide timer unless
+        // "hide even while hovering" is set (then it hides unless re-initiated)
+        if (a !== null && !autohide_hide_even_hovering && tooltip_div && tooltip_div.style.display === "block") {
             scheduleAutohide();
         }
         return;

@@ -29,6 +29,7 @@ class DomainExclusions {
         this.tooltipOpacity = 0.2; // Default opacity (more transparent)
         this.autohideEnabled = false; // Default OFF
         this.autohideSecs = 5; // Default timeout in seconds
+        this.autohideHideEvenHovering = false; // Default: keep while still hovering
         this.init();
     }
 
@@ -109,15 +110,20 @@ class DomainExclusions {
             this.autohideEnabled = !!enabled;
             const secs = await storage.get('tooltip_autohide_secs');
             this.autohideSecs = secs !== undefined ? this.clampAutohideSecs(secs) : 5;
+            const hideEvenHovering = await storage.get('tooltip_autohide_hide_even_hovering');
+            this.autohideHideEvenHovering = !!hideEvenHovering;
 
             const enabledCheckbox = document.getElementById('autohide-enabled');
             if (enabledCheckbox) enabledCheckbox.checked = this.autohideEnabled;
             const secsInput = document.getElementById('autohide-secs');
             if (secsInput) secsInput.value = this.autohideSecs;
+            const hideEvenHoveringCheckbox = document.getElementById('autohide-hide-even-hovering');
+            if (hideEvenHoveringCheckbox) hideEvenHoveringCheckbox.checked = this.autohideHideEvenHovering;
         } catch (error) {
             console.error('Failed to load autohide settings:', error);
             this.autohideEnabled = false;
             this.autohideSecs = 5;
+            this.autohideHideEvenHovering = false;
         }
     }
 
@@ -125,6 +131,7 @@ class DomainExclusions {
         try {
             await storage.set('tooltip_autohide_enabled', this.autohideEnabled);
             await storage.set('tooltip_autohide_secs', this.autohideSecs);
+            await storage.set('tooltip_autohide_hide_even_hovering', this.autohideHideEvenHovering);
             this.showStatus('Auto-hide setting saved', 'success');
         } catch (error) {
             console.error('Failed to save autohide setting:', error);
@@ -135,6 +142,8 @@ class DomainExclusions {
     updateAutohideControls() {
         const secsInput = document.getElementById('autohide-secs');
         if (secsInput) secsInput.disabled = !this.autohideEnabled;
+        const hideEvenHoveringCheckbox = document.getElementById('autohide-hide-even-hovering');
+        if (hideEvenHoveringCheckbox) hideEvenHoveringCheckbox.disabled = !this.autohideEnabled;
         const controls = document.getElementById('autohide-controls');
         if (controls) controls.classList.toggle('disabled', !this.autohideEnabled);
     }
@@ -146,6 +155,7 @@ class DomainExclusions {
         const presetButtons = document.querySelectorAll('.preset-btn');
         const autohideEnabled = document.getElementById('autohide-enabled');
         const autohideSecs = document.getElementById('autohide-secs');
+        const autohideHideEvenHovering = document.getElementById('autohide-hide-even-hovering');
 
         // Add domain on button click
         addBtn.addEventListener('click', () => {
@@ -209,6 +219,14 @@ class DomainExclusions {
             autohideSecs.addEventListener('change', async (e) => {
                 this.autohideSecs = this.clampAutohideSecs(e.target.value);
                 e.target.value = this.autohideSecs;
+                await this.saveAutohideSettings();
+            });
+        }
+
+        // Handle autohide "hide even while hovering" sub-option
+        if (autohideHideEvenHovering) {
+            autohideHideEvenHovering.addEventListener('change', async (e) => {
+                this.autohideHideEvenHovering = e.target.checked;
                 await this.saveAutohideSettings();
             });
         }
